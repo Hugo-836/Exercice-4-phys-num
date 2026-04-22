@@ -59,11 +59,7 @@ double rho_lib(bool trivial, double r, double b, double R, double a0)
 {
     if (trivial)
     {
-        if (r < b) {
-            return a0; // Uniform charge density in the inner region
-        } else {
-            return 0.0; // No charge in the outer region
-        }
+        return 1.0;
     }
 
     if (r <= b) {
