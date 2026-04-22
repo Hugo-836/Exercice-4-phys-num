@@ -1,0 +1,13 @@
+// Trivial (uniform) case: epsilon_r = 1 everywhere, rho_lib/eps0 = 1 everywhere
+
+// Physical parameters
+b       = 0.05   // Inner radius [m] (only affects rho/epsilon profile in non-trivial)
+R       = 0.1    // Outer radius [m]
+V0      = 0      // Boundary potential at r=R [V]
+a0      = 1      // Free charge scale [V/m^2] (unused when trivial=true)
+trivial = true   // true: uniform test case, false: non-trivial profiles
+
+// Numerical parameters
+N1     = 5       // Number of intervals in [0, b]
+N2     = 5       // Number of intervals in [b, R]
+output = trivial

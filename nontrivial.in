@@ -1,0 +1,11 @@
+// Physical parameters
+b       = 0.02   // Inner radius [m]
+R       = 0.1    // Outer radius [m]
+V0      = 0      // Boundary potential at r=R [V]
+a0      = 1e4    // Free charge density scale [V/m^2]
+trivial = false  // true: uniform test case, false: non-trivial profiles
+
+// Numerical parameters
+N1     = 200     // Number of intervals in [0, b]
+N2     = 200     // Number of intervals in [b, R]
+output = nontrivial
