@@ -3,8 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
-#include "../../common/ConfigFile.h"
+#include "./common/ConfigFile.h"
 
 using namespace std;
 
@@ -38,16 +37,32 @@ vector<T> solve(const vector<T>& diag,
 
 // TODO: Implement the relative permittivity epsilon_r(r).
 //       Should allow for a trivial test case (trivial=true) 
-double epsilon_r(/* TODO: add arguments */)
+double epsilon_r(double r, double b, double R, bool trivial)
 {
-    return 0.0; // TODO: replace
+    if (trivial) {
+        return 1;
+    } else {
+        if (0 <= r < b) {
+            return 1.0;
+        } else {
+            return 3+6*(r-b)/(R-b);
+        }
+    }
 }
 
 // TODO: Implement the normalised free charge density rho_lib(r) / epsilon_0.
 //       Should allow for a trivial test case (trivial=true) 
-double rho_lib(/* TODO: add arguments */)
-{
-    return 0.0; // TODO: replace
+double rho_lib(double r, double b, double a0, bool trivial, double R)
+{   
+    if (trivial) {
+        return ;
+    } else {
+        if (0 <= r <= b) {
+            return a0*sin(PI*r/b);
+        } else {
+            return 0;
+        }
+    }
 }
 
 int main(int argc, char* argv[])
