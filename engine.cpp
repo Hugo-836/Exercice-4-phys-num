@@ -3,7 +3,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "./common/ConfigFile.h"
+
+#include "common/ConfigFile.h"
 
 using namespace std;
 
@@ -35,33 +36,40 @@ vector<T> solve(const vector<T>& diag,
     return solution;
 }
 
+
 // TODO: Implement the relative permittivity epsilon_r(r).
 //       Should allow for a trivial test case (trivial=true) 
-double epsilon_r(double r, double b, double R, bool trivial)
+double epsilon_r(bool trivial, double r, double b, double R)
 {
-    if (trivial) {
-        return 1;
+    if (trivial)
+    {
+        return 1.0; // Vacuum permittivity everywhere
+    }
+    
+    if (r < b) {
+        return 1.0;
     } else {
-        if (0 <= r < b) {
-            return 1.0;
-        } else {
-            return 3+6*(r-b)/(R-b);
-        }
+        return 3.0 + 6.0 * ((r - b) / (R - b));
     }
 }
 
 // TODO: Implement the normalised free charge density rho_lib(r) / epsilon_0.
 //       Should allow for a trivial test case (trivial=true) 
-double rho_lib(double r, double b, double a0, bool trivial, double R)
-{   
-    if (trivial) {
-        return ;
-    } else {
-        if (0 <= r <= b) {
-            return a0*sin(PI*r/b);
+double rho_lib(bool trivial, double r, double b, double R, double a0)
+{
+    if (trivial)
+    {
+        if (r < b) {
+            return a0; // Uniform charge density in the inner region
         } else {
-            return 0;
+            return 0.0; // No charge in the outer region
         }
+    }
+
+    if (r <= b) {
+        return a0 * sin(PI * r / b);
+    } else {
+        return 0.0;
     }
 }
 
@@ -100,11 +108,25 @@ int main(int argc, char* argv[])
     const double h2 = (R - b) / N2;      // Step size in outer region
 
     vector<double> r(npoints);
-    // TODO: fill r[0..N1] and r[N1..npoints-1]
+    r[0] = 0.0;
+    for (int i = 1; i <= N1; ++i) {
+        r[i] = i * h1;
+    }
+    for (int i = 1; i <= N2; ++i) {
+        r[N1 + i] = b + i * h2;
+    }
+
 
     vector<double> h(ninters);           // Interval widths
     vector<double> midPoint(ninters);    // Midpoints of each interval
-    // TODO: fill h[i]  and  midPoint[i]
+    for (int i = 0; i < N1; ++i) {
+        h[i] = h1;
+        midPoint[i] = (r[i] + r[i+1]) / 2.0;
+    }
+    for (int i = N1; i < ninters; ++i) {
+        h[i] = h2;
+        midPoint[i] = (r[i] + r[i+1]) / 2.0;
+    }
 
     // ---------------------------------------------------------------
     // Assemble the tridiagonal system  A * phi = rhs
@@ -115,11 +137,24 @@ int main(int argc, char* argv[])
     vector<double> rhs(npoints, 0.0);    // Right-hand side
 
     for (int k = 0; k < ninters; ++k) {
-        // TODO: compute alpha_k and beta_k
-        //       then add their contributions to diag, lower, upper, and rhs
+        double eps_mid = epsilon_r(trivial, midPoint[k], b, R);
+        double rho_mid = rho_lib(trivial, midPoint[k], b, R, a0);
+        double alpha_k = eps_mid / h[k];
+        double beta_k = rho_mid * h[k] / 2.0;
+        diag[k] += alpha_k;
+        upper[k] += -alpha_k;
+        diag[k+1] += alpha_k;
+        lower[k] += -alpha_k;
+        rhs[k] += beta_k;
+        rhs[k+1] += beta_k;
     }
 
     // TODO: enforce the Dirichlet BC at r = R
+    int last = npoints - 1;
+    diag[last] = 1.0;
+    rhs[last] = V0;
+    upper[last - 1] = 0.0;
+    lower[last - 1] = 0.0;
 
     // ---------------------------------------------------------------
     // Solve the linear system
@@ -134,7 +169,8 @@ int main(int argc, char* argv[])
     vector<double> Dr(ninters, 0.0);
     for (int k = 0; k < ninters; ++k) {
         rmid[k] = midPoint[k];
-        // TODO: compute Er[k] and Dr[k] 
+        Er[k] = - (phi[k+1] - phi[k]) / h[k];
+        Dr[k] = epsilon_r(trivial, midPoint[k], b, R) * Er[k];
     }
 
     // ---------------------------------------------------------------
@@ -146,7 +182,8 @@ int main(int argc, char* argv[])
     vector<double> rho_at_midmid(ninters - 1, 0.0);
     for (int k = 0; k < ninters - 1; ++k) {
         rmidmid[k] = 0.5 * (rmid[k] + rmid[k + 1]);
-        // TODO: compute div_Dr[k] and rho_at_midmid[k]
+        div_Dr[k] = (Dr[k+1] - Dr[k]) / (rmid[k+1] - rmid[k]);
+        rho_at_midmid[k] = rho_lib(trivial, rmidmid[k], b, R, a0);
     }
 
     // ---------------------------------------------------------------

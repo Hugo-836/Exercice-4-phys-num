@@ -12,7 +12,7 @@ import os
 
 # Path to compiled executable (adjust if needed)
 repertoire     = ''
-executable     = 'engine.exe'
+executable     = './engine'
 input_filename = 'trivial.in'   # base configuration file
 
 # Base parameters (values here are overwritten by the scan below)
