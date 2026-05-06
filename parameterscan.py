@@ -13,15 +13,15 @@ import os
 # Path to compiled executable (adjust if needed)
 repertoire     = ''
 executable     = './engine'
-input_filename = 'trivial.in'   # base configuration file
+input_filename = 'nontrivial.in'   # base configuration file
 
 # Base parameters (values here are overwritten by the scan below)
 input_parameters = {
-    'b'      : 0.05,   # Inner radius [m]
+    'b'      : 0.02,   # Inner radius [m]
     'R'      : 0.1,    # Outer radius [m]
     'V0'     : 0,      # Boundary potential [V]
-    'a0'     : 1,      # Charge density scale [V/m^2]  (unused when trivial=true)
-    'trivial': 'true', # true: uniform test case
+    'a0'     : 1e4,       # Charge density scale [V/m^2]
+    'trivial': 'false', # true: uniform test case
     'N1'     : 5,      # Intervals in [0, b]
     'N2'     : 5,      # Intervals in [b, R]
 }
