@@ -2,15 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-scan_dir = "Scan_N1_electrostatics_b_0.02_R_0.1_trivial_false"
-prefix   = "electrostatics_b_0.02_R_0.1_trivial_false_N1_"
+scan_dir = "Scan_N1_electrostatics_b_0.1_R_0.1_trivial_false"
+prefix   = "electrostatics_b_0.1_R_0.1_trivial_false_N1_"
 N_values = [2, 4, 8, 16, 32, 64, 128, 256]
 
-b  = 0.02
+b  = 0.1   # b=R : cylindre plein, pas d'interface
 R  = 0.1
 
 # suffixe ajouté aux noms des figures pour ne pas écraser le cas trivial
-fig_suffix = "_nontrivial"
+fig_suffix = "_cylindre_plein"
 
 # ── couleurs dégradées ─────────────────────────────────────────────────────
 cmap   = plt.cm.viridis

@@ -17,13 +17,13 @@ input_filename = 'nontrivial.in'   # base configuration file
 
 # Base parameters (values here are overwritten by the scan below)
 input_parameters = {
-    'b'      : 0.02,   # Inner radius [m]
+    'b'      : 0.1,    # Inner radius = R : cylindre plein
     'R'      : 0.1,    # Outer radius [m]
     'V0'     : 0,      # Boundary potential [V]
-    'a0'     : 1e4,       # Charge density scale [V/m^2]
-    'trivial': 'false', # true: uniform test case
+    'a0'     : 1e4,    # Charge density scale [V/m^2]
+    'trivial': 'false',# true: uniform test case
     'N1'     : 5,      # Intervals in [0, b]
-    'N2'     : 5,      # Intervals in [b, R]
+    'N2'     : 0,      # 0 : pas de région extérieure (cylindre plein)
 }
 
 # -----------------------------------------------------------------------
@@ -51,8 +51,8 @@ for val in variable_array:
 
     params = input_parameters.copy()
     params[paramstr] = val
-    # For a convergence study keep N1 = N2
-    if paramstr == 'N1':
+    # Pour cylindre plein (N2=0), on ne touche pas N2
+    if paramstr == 'N1' and input_parameters['N2'] != 0:
         params['N2'] = val
 
     output_file = f"{outstr}_{paramstr}_{val}"

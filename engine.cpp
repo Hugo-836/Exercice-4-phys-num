@@ -135,8 +135,8 @@ int main(int argc, char* argv[])
     for (int k = 0; k < ninters; ++k) {
         double eps_mid = epsilon_r(trivial, midPoint[k], b, R);
         double rho_mid = rho_lib(trivial, midPoint[k], b, R, a0);
-        double alpha_k = eps_mid / h[k];
-        double beta_k = rho_mid * h[k] / 2.0;
+        double alpha_k = midPoint[k] * eps_mid / h[k];
+        double beta_k = midPoint[k] * rho_mid * h[k] / 2.0;
         diag[k] += alpha_k;
         upper[k] += -alpha_k;
         diag[k+1] += alpha_k;
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
     vector<double> rho_at_midmid(ninters - 1, 0.0);
     for (int k = 0; k < ninters - 1; ++k) {
         rmidmid[k] = 0.5 * (rmid[k] + rmid[k + 1]);
-        div_Dr[k] = (Dr[k+1] - Dr[k]) / (rmid[k+1] - rmid[k]);
+        div_Dr[k] = (rmidmid[k+1] * Dr[k+1] - rmidmid[k] * Dr[k]) / (rmid[k]*(rmid[k+1] - rmid[k]));
         rho_at_midmid[k] = rho_lib(trivial, rmidmid[k], b, R, a0);
     }
 
