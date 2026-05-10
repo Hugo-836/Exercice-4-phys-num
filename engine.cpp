@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
     vector<double> rho_at_midmid(ninters - 1, 0.0);
     for (int k = 0; k < ninters - 1; ++k) {
         rmidmid[k] = 0.5 * (rmid[k] + rmid[k + 1]);
-        div_Dr[k] = (rmidmid[k+1] * Dr[k+1] - rmidmid[k] * Dr[k]) / (rmid[k]*(rmid[k+1] - rmid[k]));
+        div_Dr[k] = (rmid[k+1] * Dr[k+1] - rmid[k] * Dr[k]) / (rmidmid[k] * (rmid[k+1] - rmid[k]));
         rho_at_midmid[k] = rho_lib(trivial, rmidmid[k], b, R, a0);
     }
 
