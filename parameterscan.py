@@ -56,7 +56,7 @@ fig1, ax1 = plt.subplots(figsize=(7, 5))
 for N, col in zip(N_phi_Er, colors_phi):
     fname = os.path.join(outdir, f"{outstr}_N1_{int(N)}_phi.out")
     data  = np.loadtxt(fname)
-    ax1.plot(data[:, 0], data[:, 1], color=col, lw=1.5, label=f"N={int(N)} (numerical)")
+    ax1.plot(data[:, 0], data[:, 1], color=col, lw=1.5, label=f"N={int(N)}")
 
 if MODE == 'trivial':
     r_ana = np.linspace(0, R, 500)
@@ -81,9 +81,9 @@ else:
 for N, col in zip(N_phi_Er, colors_phi):
     fname = os.path.join(outdir, f"{outstr}_N1_{int(N)}_ErDr.out")
     data  = np.loadtxt(fname)
-    ax2.plot(data[:, 0], data[:, 1], color=col, lw=1.5, label=f"N={int(N)} (numerical)")
+    ax2.plot(data[:, 0], data[:, 1], color=col, lw=1.5, label=f"N={int(N)}")
     if MODE == 'nontrivial':
-        ax2b.plot(data[:, 0], data[:, 2], color=col, lw=1.5, label=f"N={int(N)} (numerical)")
+        ax2b.plot(data[:, 0], data[:, 2], color=col, lw=1.5, label=f"N={int(N)}")
 
 if MODE == 'trivial':
     r_ana = np.linspace(0, R, 500)
