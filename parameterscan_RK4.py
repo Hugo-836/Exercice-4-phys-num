@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from scipy.special import sici
 
 executable = './engine_RK4'
-N_values   = np.array([64])               # N = 64
+N_values   = np.array([64])                    # N = 64  (phi/Er plots)
+N_conv     = 2**np.arange(1, 9)               # N = 2, 4, ..., 256  (convergence)
 
 # ── Définition des 3 cas ────────────────────────────────────────────────────
 def _Er_cylindre(r, a0, R):
@@ -56,8 +57,10 @@ for case in cases:
     print(f"Cas : {label}  →  {outdir}")
     print(f"{'='*60}")
 
+    N_all = np.unique(np.concatenate([N_values, N_conv])).astype(int)
+
     # ── Scan ─────────────────────────────────────────────────────────────────
-    for N in N_values:
+    for N in N_all:
         p = {k: v for k, v in params.items()}
         p["N1"] = int(N)
         if p["N2"] == 'N':
@@ -102,4 +105,45 @@ for case in cases:
     fig2.tight_layout()
     fig2.savefig(f"scan_N1_Er_{label}_RK4.png", dpi=150)
     plt.close(fig2)
+
+    # ── Figure 3 : convergence  |phi(r) - phi_ana(r)|  vs N ─────────────────
+    phi_ana_0  = float(np.atleast_1d(case["phi_ana"](np.array([0.0])))[0])
+    phi_ana_R2 = float(np.atleast_1d(case["phi_ana"](np.array([R / 2])))[0])
+
+    err_r0  = []
+    err_rR2 = []
+    for N in N_conv:
+        fname = os.path.join(outdir, f"{outstr}_N1_{int(N)}_phi.out")
+        data  = np.loadtxt(fname)
+        phi_r0  = data[0, 1]
+        phi_rR2 = np.interp(R / 2, data[:, 0], data[:, 1])
+        err_r0 .append(abs(phi_r0  - phi_ana_0 ))
+        err_rR2.append(abs(phi_rR2 - phi_ana_R2))
+
+    N_arr = np.array(N_conv, dtype=float)
+
+    # régression log-log sur phi(0) (sans le premier point N=2)
+    log_N   = np.log(N_arr[1:])
+    log_err = np.log(np.array(err_r0[1:]) + 1e-16)
+    slope0, intercept0 = np.polyfit(log_N, log_err, 1)
+    err_fit0 = np.exp(intercept0) * N_arr**slope0
+
+    fig3, ax3 = plt.subplots(figsize=(7, 5))
+    ax3.loglog(N_arr, np.array(err_r0)  + 1e-16, "o-", color="steelblue", ms=7,
+               label=r"$|\phi(0) - \phi_{\rm ana}(0)|$")
+    ax3.loglog(N_arr, np.array(err_rR2) + 1e-16, "s-", color="tomato",    ms=7,
+               label=r"$|\phi(R/2) - \phi_{\rm ana}(R/2)|$")
+    ax3.loglog(N_arr, err_fit0, "b--", lw=1.2,
+               label=fr"régression $\phi(0)$: $N^{{{slope0:.2f}}}$")
+    ref0 = err_r0[0] + 1e-16
+    ax3.loglog(N_arr, ref0 * (N_arr / N_arr[0])**(-4),
+               "k--", lw=0.8, label=r"$\propto N^{-4}$")
+    ax3.set_xlabel("N")
+    ax3.set_ylabel(r"Error on $\phi$")
+    ax3.legend(fontsize=13)
+    ax3.grid(True, which="both", alpha=0.3)
+    fig3.tight_layout()
+    fig3.savefig(f"scan_N1_convergence_{label}_RK4.png", dpi=150)
+    print(f"  Saved: scan_N1_convergence_{label}_RK4.png")
+    plt.close(fig3)
 

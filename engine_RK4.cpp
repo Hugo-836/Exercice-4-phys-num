@@ -109,21 +109,43 @@ int main(int argc, char* argv[])
         midPoint[i] = 0.5 * (r[i] + r[i+1]);
     }
 
-    // ── Intégration RK4 de r=0 à r=R ────────────────────────────────────────
-    //  Conditions initiales : φ(0)=0 (arbitraire), F(0)=0 (symétrie)
-    vector<array<double,2>> y(npoints);
-    y[0] = {0.0, 0.0};
+    // ── Méthode de tir : intégration RK4 de r=R vers r=0 ────────────────────
+    //  Variables : y = { phi, F }  avec  F = r·ε_r·dφ/dr = -r·ε_r·E_r
+    //  CI à r=R : phi=V0 , F = -R·ε_r(R)·E_r(R)
+    //  Condition à r=0  : F(0) = 0  (solution régulière : E_r(0) = 0)
+    //  Pour la solution singulière (E_r ~ C/r) : F(0) = -C·ε_r(0) ≠ 0
 
-    for (int i = 0; i < ninters; ++i)
-        y[i+1] = rk4Step(r[i], h[i], y[i], trivial, b, R, a0);
+    // Tir depuis r=R avec un guess Er_R pour E_r(R)
+    auto shoot = [&](double Er_R) {
+        vector<array<double,2>> yy(npoints);
+        yy[npoints - 1] = {V0, -R * epsilon_r(trivial, R, b, R) * Er_R};
+        for (int i = ninters - 1; i >= 0; --i)
+            yy[i] = rk4Step(r[i+1], -h[i], yy[i+1], trivial, b, R, a0);
+        return yy;
+    };
 
-    // ── Correction affine pour satisfaire φ(R) = V0 ─────────────────────────
-    //  L'équation est linéaire : ajouter (V0 - φ_calc(R)) à tous les φ est exact.
-    const double correction = V0 - y[npoints - 1][0];
+    // Résidu : F(r=0) doit valoir 0
+    auto res = [&](double Er_R) { return shoot(Er_R)[0][1]; };
+
+    // Méthode de la sécante
+    double Er0 = 0.0,  f0 = res(Er0);
+    double Er1 = R,    f1 = res(Er1);
+
+    const int    maxiter = 100;
+    const double tol     = 1e-12;
+    for (int iter = 0; iter < maxiter && abs(f1) > tol; ++iter) {
+        if (abs(f1 - f0) < 1e-30) break;
+        double Er2 = Er1 - f1 * (Er1 - Er0) / (f1 - f0);
+        Er0 = Er1;  f0 = f1;
+        Er1 = Er2;  f1 = res(Er1);
+        cerr << "secant " << iter << ": Er(R)=" << Er1 << "  F(0)=" << f1 << "\n";
+    }
+
+    auto y = shoot(Er1);
 
     vector<double> phi(npoints);
     for (int i = 0; i < npoints; ++i)
-        phi[i] = y[i][0] + correction;
+        phi[i] = y[i][0];
 
     // ── Champ électrique Er et déplacement Dr aux points milieux ─────────────
     vector<double> rmid(ninters), Er(ninters), Dr(ninters);
